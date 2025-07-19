@@ -2,8 +2,8 @@ package com.example.restaurant_rating;
 
 import com.example.restaurant_rating.dto.RestaurantRequestDTO;
 import com.example.restaurant_rating.dto.RestaurantResponseDTO;
-import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,19 +17,14 @@ public class RestaurantService {
     }
 
     public RestaurantResponseDTO save(RestaurantRequestDTO dto) {
-        Restaurant restaurant = new Restaurant(null, dto.getName(), dto.getCuisineType(), dto.getAverageCheck());
-        restaurant.setDescription(dto.getDescription());
-        restaurantRepository.save(restaurant);
+        Restaurant restaurant = new Restaurant(
+                dto.getName(),
+                dto.getDescription(),
+                dto.getCuisineType(),
+                dto.getAverageCheck()
+        );
+        restaurant = restaurantRepository.save(restaurant);
         return toResponseDTO(restaurant);
-    }
-
-    public boolean removeById(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id);
-        if (restaurant != null) {
-            restaurantRepository.remove(restaurant);
-            return true;
-        }
-        return false;
     }
 
     public List<RestaurantResponseDTO> findAll() {
@@ -39,23 +34,32 @@ public class RestaurantService {
     }
 
     public RestaurantResponseDTO findById(Long id) {
-        Restaurant r = restaurantRepository.findById(id);
-        if (r == null) {
-            throw new EntityNotFoundException("Restaurant not found: " + id);
-        }
+        Restaurant r = restaurantRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found: " + id));
         return toResponseDTO(r);
     }
 
     public RestaurantResponseDTO update(Long id, RestaurantRequestDTO dto) {
-        Restaurant r = restaurantRepository.findById(id);
-        if (r == null) {
-            throw new EntityNotFoundException("Restaurant not found: " + id);
-        }
+        Restaurant r = restaurantRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant not found: " + id));
         r.setName(dto.getName());
         r.setDescription(dto.getDescription());
         r.setCuisineType(dto.getCuisineType());
         r.setAverageCheck(dto.getAverageCheck());
+        r = restaurantRepository.save(r);
         return toResponseDTO(r);
+    }
+
+    public boolean removeById(Long id) {
+        if (restaurantRepository.existsById(id)) {
+            restaurantRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    public void deleteById(Long id) {
+        restaurantRepository.deleteById(id);
     }
 
     private RestaurantResponseDTO toResponseDTO(Restaurant restaurant) {

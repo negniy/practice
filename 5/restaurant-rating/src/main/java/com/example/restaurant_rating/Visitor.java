@@ -1,16 +1,28 @@
 package com.example.restaurant_rating;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.util.List;
+
+@Entity
+@Table(name = "visitors")
 @Data
+@NoArgsConstructor
 public class Visitor {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
-    private int age;
+    private Integer age;
     private String gender;
 
-    public Visitor(Long id, int age, String gender) {
-        this.id = id;
+    @OneToMany(mappedBy = "visitor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings;
+
+    public Visitor(String name, Integer age, String gender) {
+        this.name = name;
         this.age = age;
         this.gender = gender;
     }

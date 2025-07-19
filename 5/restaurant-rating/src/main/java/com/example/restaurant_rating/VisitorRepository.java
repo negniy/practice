@@ -7,8 +7,12 @@ import java.util.List;
 @Repository
 public class VisitorRepository {
     private final List<Visitor> visitors = new ArrayList<>();
+    private long nextId = 1;
 
     public void save(Visitor visitor) {
+        if (visitor.getId() == null) {
+            visitor.setId(nextId++);
+        }
         visitors.add(visitor);
     }
 
@@ -18,5 +22,12 @@ public class VisitorRepository {
 
     public List<Visitor> findAll() {
         return new ArrayList<>(visitors);
+    }
+
+    public Visitor findById(Long id) {
+        return visitors.stream()
+                       .filter(v -> id.equals(v.getId()))
+                       .findFirst()
+                       .orElse(null);
     }
 }

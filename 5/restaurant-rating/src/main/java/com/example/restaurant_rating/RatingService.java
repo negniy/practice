@@ -1,8 +1,13 @@
 package com.example.restaurant_rating;
 
+import com.example.restaurant_rating.dto.ReviewRequestDTO;
+import com.example.restaurant_rating.dto.ReviewResponseDTO;
 import org.springframework.stereotype.Service;
-import java.math.BigDecimal;
+import jakarta.persistence.EntityNotFoundException;
+
 import java.util.List;
+import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 public class RatingService {
@@ -14,18 +19,25 @@ public class RatingService {
         this.restaurantRepository = restaurantRepository;
     }
 
-    public void save(Rating rating) {
+    public ReviewResponseDTO save(ReviewRequestDTO dto) {
+        Rating rating = new Rating(dto.getVisitorId(), dto.getRestaurantId(), dto.getScore(), dto.getReview());
         ratingRepository.save(rating);
-        updateRestaurantRating(rating.getRestaurantId());
+        updateRestaurantRating(dto.getRestaurantId());
+        return toResponseDTO(rating);
     }
 
-    public void remove(Rating rating) {
-        ratingRepository.remove(rating);
-        updateRestaurantRating(rating.getRestaurantId());
+    public void remove(Long visitorId, Long restaurantId) {
+        Rating rating = ratingRepository.findById(visitorId, restaurantId);
+        if (rating != null) {
+            ratingRepository.remove(rating);
+            updateRestaurantRating(restaurantId);
+        }
     }
 
-    public List<Rating> findAll() {
-        return ratingRepository.findAll();
+    public List<ReviewResponseDTO> findAll() {
+        return ratingRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     private void updateRestaurantRating(Long restaurantId) {
@@ -45,5 +57,28 @@ public class RatingService {
                 restaurant.setUserRating(average);
             }
         }
+    }
+
+    public ReviewResponseDTO findById(Long visitorId, Long restaurantId) {
+        Rating r = ratingRepository.findById(visitorId, restaurantId);
+        if (r == null) {
+            throw new EntityNotFoundException("Review not found for user=" + visitorId + " restaurant=" + restaurantId);
+        }
+        return toResponseDTO(r);
+    }
+
+    public ReviewResponseDTO update(Long visitorId, Long restaurantId, ReviewRequestDTO dto) {
+        Rating r = ratingRepository.findById(visitorId, restaurantId);
+        if (r == null) {
+            throw new EntityNotFoundException("Review not found for user=" + visitorId + " restaurant=" + restaurantId);
+        }
+        r.setScore(dto.getScore());
+        r.setReview(dto.getReview());
+        updateRestaurantRating(restaurantId);
+        return toResponseDTO(r);
+    }
+
+    private ReviewResponseDTO toResponseDTO(Rating rating) {
+        return new ReviewResponseDTO(rating.getVisitorId(), rating.getRestaurantId(), rating.getScore(), rating.getReview());
     }
 }

@@ -2,8 +2,13 @@ package com.example.restaurant_rating.controllers;
 
 import com.example.restaurant_rating.dto.RestaurantRequestDTO;
 import com.example.restaurant_rating.dto.RestaurantResponseDTO;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.example.restaurant_rating.RestaurantService;
 import com.example.restaurant_rating.Restaurant;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,10 +48,15 @@ public class RestaurantController {
     }
 
     @DeleteMapping("/{id}")
-public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
-    boolean removed = restaurantService.removeById(id);
-    return removed 
-        ? ResponseEntity.ok().build() 
-        : ResponseEntity.notFound().build();
-}
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
+        boolean removed = restaurantService.removeById(id);
+        return removed 
+            ? ResponseEntity.ok().build() 
+            : ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
 }

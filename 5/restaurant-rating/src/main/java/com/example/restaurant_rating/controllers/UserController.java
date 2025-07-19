@@ -2,8 +2,13 @@ package com.example.restaurant_rating.controllers;
 
 import com.example.restaurant_rating.dto.UserRequestDTO;
 import com.example.restaurant_rating.dto.UserResponseDTO;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.example.restaurant_rating.Visitor;
 import com.example.restaurant_rating.VisitorService;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,5 +51,10 @@ public class UserController {
         return deleted
             ? ResponseEntity.ok().build()
             : ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 }

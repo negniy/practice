@@ -2,7 +2,12 @@ package com.example.restaurant_rating.controllers;
 
 import com.example.restaurant_rating.dto.ReviewRequestDTO;
 import com.example.restaurant_rating.dto.ReviewResponseDTO;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.example.restaurant_rating.RatingService;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,5 +51,10 @@ public class ReviewController {
     public ResponseEntity<Void> deleteReview(@PathVariable Long visitorId, @PathVariable Long restaurantId) {
         ratingService.remove(visitorId, restaurantId);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 }
